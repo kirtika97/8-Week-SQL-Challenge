@@ -1,2 +1,2 @@
 # 8-Week-SQL-Challenge
-Learning and Exploring SQL
+https://8weeksqlchallenge.com/
