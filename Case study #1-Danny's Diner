@@ -1,4 +1,4 @@
---CASE STUDY #1- DANNY'S DINNER
+--CASE STUDY #1- DANNY'S DINER
 CREATE SCHEMA dannys_diner;
 SET search_path = dannys_diner;
 CREATE TABLE sales (
@@ -49,25 +49,30 @@ SELECT * FROM members;
 
 --Case Study Questions
 --1. What is the total amount each customer spent at the restaurant?
+
 SELECT s.customer_id, SUM(m.price) AS "Total Amount Spent"
 FROM sales AS s
 LEFT JOIN menu AS m
 ON s.product_id = m.product_id
 GROUP BY customer_id
 ORDER BY customer_id;
+
 /* Customer A spent $76
    Customer B spent $74
    Customer C spent $36*/
    
 --2. How many days has each customer visited the restaurant?
+
 SELECT sales.customer_id, COUNT(DISTINCT(order_date)) AS "No. of days visited" FROM sales
 GROUP BY sales.customer_id
 ORDER BY sales.customer_id;
+
 /* Customer A visited 4 times
    Customer B visited 6 times
    Customer C visited 2 times*/
    
 --3. What was the first item from the menu purchased by each customer?
+
 WITH order_sales_cte AS
 (SELECT customer_id, order_date, product_name,
  DENSE_RANK() OVER(PARTITION BY s.customer_id
@@ -79,11 +84,13 @@ SELECT customer_id, product_name
 FROM order_sales_cte
 WHERE rank = 1
 GROUP BY customer_id, product_name;
+
 /* Customer A's first purchase was Curry and Sushi
    Customer B's first purchase was Curry
    Customer C's first purchase was Ramen*/
    
 --4. What is the most purchased item on the menu and how many times was it purchased by all customers?
+
 SELECT product_name, COUNT(sales.product_id) AS "purchase_count"
 FROM menu 
 JOIN sales 
@@ -91,9 +98,11 @@ ON sales.product_id = menu.product_id
 GROUP BY product_name
 ORDER BY purchase_count desc;
 LIMIT 1;
+
 /* Most purchased item was Ramen, it was purchased 8 times by all customers*/
 
 --5. Which item was the most popular for each customer?
+
 WITH most_popular_item_cte AS
 (SELECT sales.customer_id,menu.product_name, count(sales.product_id) AS ordered_max,
 DENSE_RANK() OVER(PARTITION BY sales.customer_id
@@ -104,10 +113,12 @@ GROUP BY sales.customer_id, menu.product_name)
 SELECT customer_id, product_name AS "Most Popular Item", ordered_max 
 FROM most_popular_item_cte 
 WHERE rank =1;
+
 /* Most popular item of customer A and C was Ramen
  Customer B was indifferent to all of the items Ramen, Curry, Sushi*/
    
 --6. Which item was purchased first by the customer after they became a member?
+
 WITH member_first_purchase_cte AS 
 (
    SELECT s.customer_id, m.join_date, s.order_date, s.product_id,m2.product_name,
@@ -120,10 +131,12 @@ WITH member_first_purchase_cte AS
 )
 SELECT join_date, customer_id, order_date, product_name FROM member_first_purchase_cte
 WHERE rank = 1;
+
 /* Customer A purchased Curry after becoming Member
    Customer B purchased Sushi after becoming Member*/
 
 --7. Which item was purchased just before the customer became a member?
+
 WITH purchase_before_member_cte AS 
 (
    SELECT s.customer_id, m.join_date, s.order_date, s.product_id,m2.product_name,
@@ -138,7 +151,11 @@ SELECT join_date, customer_id, order_date, product_name
 FROM purchase_before_member_cte
 WHERE rank=1;
 
+/*Customer A purchased Sushi & Curry
+  Customer B purchased Sushi, before they became a member*/
+
 --8. What is the total items and amount spent for each member before they became a member?
+
 SELECT s.customer_id, COUNT(DISTINCT s.product_id) AS "Total Items", SUM(m.price) AS "Amount Spent"
 FROM sales AS s
 JOIN menu AS m ON s.product_id = m.product_id
@@ -146,26 +163,12 @@ JOIN members AS mm ON s.customer_id=mm.customer_id
 WHERE s.order_date < mm.join_date
 GROUP BY s.customer_id
 ORDER BY s.customer_id;
+
 /* Customer A spent $25 on 2 items
    Customer B spent $40 on 2 items before they became a member*/
 
---9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier 
---how many points would each customer have?
-WITH points_cte AS
- (
-   SELECT s.customer_id, 
-     CASE m.product_name 
-	 WHEN 'sushi' THEN 2*10*m.price
-    ELSE m.price*10
-	  END
-AS points
-FROM sales as s JOIN menu as m ON s.product_id = m.product_id
-  )
-SELECT customer_id, SUM(points) AS "Total Points"
-FROM points_cte
-GROUP BY customer_id
-ORDER BY customer_id;
---or
+--9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+
 SELECT s.customer_id, 
      SUM(CASE m.product_name 
 	 WHEN 'sushi' THEN 2*10*m.price
@@ -174,12 +177,13 @@ SELECT s.customer_id,
 FROM sales as s JOIN menu as m ON s.product_id = m.product_id
 GROUP BY s.customer_id
 ORDER BY s.customer_id;
+
 /* Customer A earned 860 points, 
    Customer B earned 940 points and 
    Customer C earned 360 points earned*/
 
---10. In the first week after a customer joins the program (including their join date) 
---they earn 2x points on all items, not just sushi -how many points do customer A and B have at the end of January?
+--10. In the first week after a customer joins the program (including their join date) - they earn 2x points on all items, not just sushi -how many points do customer A and B have at the end of January?
+
 SELECT s.customer_id, SUM(CASE
                                WHEN product_name = 'sushi' THEN 20 * price
                                WHEN order_date BETWEEN join_date AND join_date + 6 THEN 20 * price
@@ -190,10 +194,12 @@ LEFT JOIN sales AS s ON s.customer_id = mm.customer_id
 LEFT JOIN menu as m ON m.product_id = s.product_id
 WHERE order_date <= '2021-01-31'
 GROUP BY s.customer_id;
+
 /* Customer A has 1370 points
    Customer B has 820 points */
    
 /*Bonus Questions: 
+
 1. Join All The Things
 Recreate the table with: customer_id, order_date, product_name, price, member (Y/N) */
 SELECT s.customer_id, s.order_date, m.product_name, m.price,
@@ -208,6 +214,7 @@ LEFT JOIN members as mm ON s.customer_id = mm.customer_id
 ORDER BY customer_id, order_date;
 
 -- 2. Rank All The Things
+
 WITH ranking_cte AS
 (SELECT s.customer_id, s.order_date, m.product_name, m.price,
 CASE
