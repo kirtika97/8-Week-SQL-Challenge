@@ -48,6 +48,7 @@ VALUES
 SELECT * FROM members;
 
 --Case Study Questions
+
 --1. What is the total amount each customer spent at the restaurant?
 SELECT s.customer_id, SUM(m.price) AS "Total Amount Spent"
 FROM sales AS s
@@ -154,6 +155,7 @@ WHERE rank=1;
 /*Customer A- sushi,curry
   Customer B-sushi*/
 
+
 --8. What is the total items and amount spent for each member before they became a member?
 SELECT s.customer_id, COUNT(DISTINCT s.product_id) AS "Total Items", SUM(m.price) AS "Amount Spent"
 FROM sales AS s
@@ -164,6 +166,7 @@ GROUP BY s.customer_id
 ORDER BY s.customer_id;
 /* Customer A spent $25 on 2 items
    Customer B spent $40 on 2 items before they became a member*/
+
 
 --9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier 
 --how many points would each customer have?
@@ -208,7 +211,8 @@ WHERE order_date <= '2021-01-31'
 GROUP BY s.customer_id;
 /* Customer A has 1370 points
    Customer B has 820 points */
-   
+
+
 /*Bonus Questions: 
 1. Join All The Things
 Recreate the table with: customer_id, order_date, product_name, price, member (Y/N) */
